@@ -25,6 +25,7 @@ namespace DotNet
             var submitSolution = GameLayer.Submit(JsonSerializer.Serialize(solution), Map);
             Console.WriteLine("Your GameId is: " + submitSolution.GameId);
             Console.WriteLine("Your score is: " + submitSolution.Score);
+            /*
             var alg = new EB_AFIT();
             var result = alg.Run(new Container(0, gameInformation.Vehicle.Height, gameInformation.Vehicle.Length, gameInformation.Vehicle.Width), gameInformation.Dimensions.Select(item => new Item(item.Id, item.Width, item.Height, item.Length, 1)).ToList());
             var algResult = 
@@ -56,7 +57,8 @@ result.PackedItems.Select(item => new PointPackage
                 z7 = (int)item.CoordZ + (int)item.CoordZ,
                 z8 = (int)item.CoordZ + (int)item.CoordZ,
             }).ToList();
-            submitSolution = GameLayer.Submit(JsonSerializer.Serialize(algResult.ToList()), Map);
+            */
+            //submitSolution = GameLayer.Submit(JsonSerializer.Serialize(algResult.ToList()), Map);
             Console.WriteLine("Link to visualisation" + submitSolution.Link);
         }
     }

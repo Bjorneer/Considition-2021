@@ -216,11 +216,11 @@ namespace DotNet
 
         private bool CanFit(int x, int z, int y, (int a, int b, int c) perm)
         {
-            for (int i = 0; i <= perm.a; i++)
+            for (int i = 0; i < perm.a; i++)
             {
-                for (int j = 0; j <= perm.b; j++)
+                for (int j = 0; j < perm.b; j++)
                 {
-                    for (int k = 0; k <= perm.c; k++)
+                    for (int k = 0; k < perm.c; k++)
                     {
                         if (_used[x + i, z + j, k + y])
                             return false;
