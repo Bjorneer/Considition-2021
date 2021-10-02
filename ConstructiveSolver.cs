@@ -51,6 +51,7 @@ namespace DotNet
                 int boxIndex = GetIndexForMinDistance(availableBoxes.Select(item => Distance(item)).Select(item => Sort(new (item.a, item.b, item.c))).ToList());
                 var bestBox = availableBoxes.Select(item => Distance(item)).ToList()[boxIndex];
                 (int x1, int x2, int y1, int y2, int z1, int z2) boxToFill = availableBoxes[boxIndex];
+                availableBoxes.RemoveAt(boxIndex);
                 PointPackage bestPlacedPackage = null;
                 int bestVolume = 0;
                 foreach (var package in _packages)
@@ -58,7 +59,8 @@ namespace DotNet
                     int height = package.Height;
                     int length = package.Length;
                     int width = package.Width;
-                    if (width * height * length > bestVolume && height <= bestBox.a && length <= bestBox.b && width <= bestBox.c)
+                    if (width * height * length > bestVolume && height <= bestBox.a && length <= bestBox.b && width <= bestBox.c) 
+                        // Instead of max volume it might be good to go by best fit if 1 or 2 directions fit perfectly
                     {
                         bestPlacedPackage = GetPointPackage(bestBox.corner, package, boxToFill);
                         bestVolume = width * height * length;
@@ -67,17 +69,131 @@ namespace DotNet
                 if (bestPlacedPackage == null)
                     throw new Exception("Unable to place all packages. Increase length");
                 _solution.Add(bestPlacedPackage);
-
+                
+                SplitBox(bestPlacedPackage, boxToFill);
             }
+            LowerFloatingPackages();
             return _solution;
+        }
+
+        private IEnumerable<(int x1, int x2, int y1, int y2, int z1, int z2)> SplitBox(PointPackage bestPlacedPackage, (int x1, int x2, int y1, int y2, int z1, int z2) boxToFill)
+        {
+            return null;
+        }
+
+        private void LowerFloatingPackages()
+        {
+            throw new NotImplementedException();
         }
 
         private PointPackage GetPointPackage(int corner, Package package, (int x1, int x2, int y1, int y2, int z1, int z2) boxToFill)
         {
+            (int x1, int x2, int y1, int y2, int z1, int z2) pointPackage = new (0,0,0,0,0,0);
             foreach (var perm in GetPermutaions(new int[] { package.Width, package.Height, package.Length }, 0))
             {
+
+                if (perm.a <= boxToFill.x2 - boxToFill.x1 && perm.b <= boxToFill.y2 - boxToFill.y1 && perm.c <= boxToFill.z2 - boxToFill.z1) 
+                    // Instead of max volume it might be good to go by best fit if 1 or 2 directions fit perfectly
+                {
+                    switch (corner)
+                    {
+                        case 0:
+                            pointPackage.x1 = boxToFill.x1;
+                            pointPackage.x2 = perm.a + boxToFill.x2;
+                            pointPackage.y1 = boxToFill.y1;
+                            pointPackage.y2 = perm.b + boxToFill.y2;
+                            pointPackage.z1 = boxToFill.z1;
+                            pointPackage.z2 = perm.c + boxToFill.z2;
+                            break;
+                        case 1:
+                            pointPackage.x1 = boxToFill.x1;
+                            pointPackage.x2 = perm.a + boxToFill.x2;
+                            pointPackage.y1 = boxToFill.y1;
+                            pointPackage.y2 = perm.b + boxToFill.y2;
+                            pointPackage.z1 = boxToFill.z2 - perm.c;
+                            pointPackage.z2 = boxToFill.z1;
+                            break;
+                        case 2:
+                            pointPackage.x1 = boxToFill.x1;
+                            pointPackage.x2 = perm.a + boxToFill.x2;
+                            pointPackage.y1 = boxToFill.y2 - perm.b;
+                            pointPackage.y2 = boxToFill.y2;
+                            pointPackage.z1 = boxToFill.z1;
+                            pointPackage.z2 = perm.c + boxToFill.z2;
+                            break;
+                        case 3:
+                            pointPackage.x1 = boxToFill.x1;
+                            pointPackage.x2 = perm.a + boxToFill.x2;
+                            pointPackage.y1 = boxToFill.y2 - perm.b;
+                            pointPackage.y2 = boxToFill.y2;
+                            pointPackage.z1 = boxToFill.z2 - perm.c;
+                            pointPackage.z2 = boxToFill.z1;
+                            break;
+                        case 4:
+                            pointPackage.x1 = boxToFill.x2 - perm.a;
+                            pointPackage.x2 = boxToFill.x2;
+                            pointPackage.y1 = boxToFill.y1;
+                            pointPackage.y2 = perm.b + boxToFill.y2;
+                            pointPackage.z1 = boxToFill.z1;
+                            pointPackage.z2 = perm.c + boxToFill.z2;
+                            break;
+                        case 5:
+                            pointPackage.x1 = boxToFill.x2 - perm.a;
+                            pointPackage.x2 = boxToFill.x2;
+                            pointPackage.y1 = boxToFill.y1;
+                            pointPackage.y2 = perm.b + boxToFill.y2;
+                            pointPackage.z1 = boxToFill.z2 - perm.c;
+                            pointPackage.z2 = boxToFill.z1;
+                            break;
+                        case 6:
+                            pointPackage.x1 = boxToFill.x2 - perm.a;
+                            pointPackage.x2 = boxToFill.x2;
+                            pointPackage.y1 = boxToFill.y2 - perm.b;
+                            pointPackage.y2 = boxToFill.y2;
+                            pointPackage.z1 = boxToFill.z1;
+                            pointPackage.z2 = perm.c + boxToFill.z2;
+                            break;
+                        case 7:
+                            pointPackage.x1 = boxToFill.x2 - perm.a;
+                            pointPackage.x2 = boxToFill.x2;
+                            pointPackage.y1 = boxToFill.y2 - perm.b;
+                            pointPackage.y2 = boxToFill.y2;
+                            pointPackage.z1 = boxToFill.z2 - perm.c;
+                            pointPackage.z2 = boxToFill.z1;
+                            break;
+                    }
+                }
             }
-            return null;
+            return new PointPackage
+            {
+                Id = package.Id,
+                x1 = pointPackage.x1,
+                x2 = pointPackage.x1,
+                x3 = pointPackage.x1,
+                x4 = pointPackage.x1,
+                x5 = pointPackage.x2,
+                x6 = pointPackage.x2,
+                x7 = pointPackage.x2,
+                x8 = pointPackage.x2,
+                y1 = pointPackage.y1,
+                y2 = pointPackage.y1,
+                y3 = pointPackage.y1,
+                y4 = pointPackage.y1,
+                y5 = pointPackage.y2,
+                y6 = pointPackage.y2,
+                y7 = pointPackage.y2,
+                y8 = pointPackage.y2,
+                z1 = pointPackage.z1,
+                z2 = pointPackage.z1,
+                z3 = pointPackage.z1,
+                z4 = pointPackage.z1,
+                z5 = pointPackage.z2,
+                z6 = pointPackage.z2,
+                z7 = pointPackage.z2,
+                z8 = pointPackage.z2,
+                OrderClass = package.OrderClass,
+                WeightClass = package.WeightClass
+            };
         }
 
         private IEnumerable<(int a, int b, int c)> GetPermutaions(int[] list, int k)

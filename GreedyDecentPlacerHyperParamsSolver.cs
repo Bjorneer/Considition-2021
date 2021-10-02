@@ -6,7 +6,7 @@ using DotNet.models;
 
 namespace DotNet
 {
-    public class GreedyGoodPlaceHyperParamsSolver
+    public class GreedyGoodPlaceSolver
     {
 
         private List<Package> _packages;
@@ -18,7 +18,7 @@ namespace DotNet
         private readonly int _truckY;
         private readonly int _truckZ;
 
-        public GreedyGoodPlaceHyperParamsSolver(List<Package> packages, Vehicle vehicle)
+        public GreedyGoodPlaceSolver(List<Package> packages, Vehicle vehicle)
         {
             /*
             packages.ForEach(package =>
@@ -34,7 +34,7 @@ namespace DotNet
             });
             */
             _packages = packages;
-            
+
             _used = new bool[vehicle.Length, vehicle.Height, vehicle.Length];
             _truckX = vehicle.Length;
             _truckY = vehicle.Width;
