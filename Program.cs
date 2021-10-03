@@ -15,13 +15,13 @@ namespace DotNet
     {
         private const string ApiKey = "510c78d2-d786-41aa-b327-d6902d965217";  // TODO: Enter your API key
         // The different map names can be found on considition.com/rules
-        private const string Map = "training1";     // TODO: Enter your desired map
+        private const string Map = "training2";     // TODO: Enter your desired map
         private static readonly GameLayer GameLayer = new(ApiKey);
         
         public static void Main(string[] args)
         {
             var gameInformation = GameLayer.NewGame(Map);
-            GreedyGoodPlaceSolver greedySolver = new GreedyGoodPlaceSolver(gameInformation.Dimensions, gameInformation.Vehicle);
+            ReversePlacerSolver greedySolver = new ReversePlacerSolver(gameInformation.Dimensions, gameInformation.Vehicle);
             var solution = greedySolver.Solve();
             var submitSolution = GameLayer.Submit(JsonSerializer.Serialize(solution), Map);
             Console.WriteLine("Your GameId is: " + submitSolution.GameId);
