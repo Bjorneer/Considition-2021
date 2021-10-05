@@ -36,7 +36,7 @@ namespace DotNet
             */
             _packages = packages;
             
-            _used = new bool[vehicle.Length, vehicle.Height, vehicle.Length];
+            _used = new bool[vehicle.Length, vehicle.Height, vehicle.Width];
             _truckX = vehicle.Length;
             _truckY = vehicle.Width;
             _truckZ = vehicle.Height;
