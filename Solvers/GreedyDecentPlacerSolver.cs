@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using DotNet.models;
+using DotNet.Solvers;
 
-
-namespace DotNet
+namespace DotNet.Solvers
 {
-    public class GreedyGoodPlaceSolver
+    public class GreedyGoodPlaceSolver : ISolver
     {
 
         private List<Package> _packages;
@@ -219,6 +219,12 @@ namespace DotNet
 
         private bool CanFit(int x, int z, int y, (int a, int b, int c) perm)
         {
+            foreach (var package in _solution)
+            {
+                if ((package.x5 > x && package.x1 < x + perm.a) && (package.y5 > y && package.y1 < y + perm.c) && (package.z5 > z && package.z1 < z + perm.b))
+                    return false;
+            }
+            /*
             for (int i = 0; i < perm.a; i++)
             {
                 for (int j = 0; j < perm.b; j++)
@@ -226,10 +232,15 @@ namespace DotNet
                     for (int k = 0; k < perm.c; k++)
                     {
                         if (_used[x + i, z + j, k + y])
+                        {
+                            if (fi)
+                                Console.WriteLine("true");
                             return false;
+                        }
                     }
                 }
             }
+            */
             return true;
         }
 

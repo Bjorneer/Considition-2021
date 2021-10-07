@@ -14,12 +14,12 @@ namespace DotNet.Visualisation
         {
             using (StreamWriter writer = new StreamWriter("C:\\src\\Considition-2021\\Visualisation\\visualization.txt", false))
             {
-                writer.WriteLine("length,width,height,x,y,z");
-                writer.WriteLine($"{vehicle.Length},{vehicle.Width},{vehicle.Height},0,0,0");
-                writer.WriteLine($"{packages.Max(item => item.x5)},{packages.Max(item => item.y5)},{packages.Max(item => item.z5)},0,0,0");
+                writer.WriteLine("length,width,height,x,y,z,weight,order");
+                writer.WriteLine($"{vehicle.Length},{vehicle.Width},{vehicle.Height},0,0,0,0,0");
+                writer.WriteLine($"{packages.Max(item => item.x5)},{packages.Max(item => item.y5)},{packages.Max(item => item.z5)},0,0,0,0,0");
                 foreach (var package in packages)
                 {
-                    writer.WriteLine($"{package.x5 - package.x1},{package.y5 - package.y1},{package.z5 - package.z1},{package.x1},{package.y1},{package.z1}");
+                    writer.WriteLine($"{package.x5 - package.x1},{package.y5 - package.y1},{package.z5 - package.z1},{package.x1},{package.y1},{package.z1},{package.WeightClass},{package.OrderClass}");
                 }
                 writer.Close();
             }

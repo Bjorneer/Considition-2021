@@ -14,6 +14,8 @@ namespace DotNet
 {
     public static class Program
     {
+        public static Random Random = new Random();
+
         private const string ApiKey = "510c78d2-d786-41aa-b327-d6902d965217";  // TODO: Enter your API key
         // The different map names can be found on considition.com/rules
         private const string Map = "training2";     // TODO: Enter your desired map
@@ -22,7 +24,7 @@ namespace DotNet
         public static void Main(string[] args)
         {
             var gameInformation = GameLayer.NewGame(Map);
-            GreedyGoodPlaceSolver greedySolver = new GreedyGoodPlaceSolver(gameInformation.Dimensions, gameInformation.Vehicle);
+            ISolver greedySolver = new Corner4Solver(gameInformation.Dimensions, gameInformation.Vehicle);
             var solution = greedySolver.Solve();
             var submitSolution = GameLayer.Submit(JsonSerializer.Serialize(solution), Map);
             Console.WriteLine("Your GameId is: " + submitSolution.GameId);

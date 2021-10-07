@@ -24,15 +24,51 @@ class Model:
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         return pyglet.graphics.TextureGroup(tex)
 
-    def add_block(self,x,y,z, length, widht, height, block=True):
+    def add_block(self,x,y,z, length, widht, height, block, weight, order):
         z, y = y, z
         height, widht = widht, height
-        
         X, Y, Z = x+length, y+widht, z+height
         
         black = ('c4B', [0,0,0,0,0,0,0,0])
+        orderClr = []
         if block:
-            clr = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 255]
+            if order == 0:
+                if weight == 0:
+                    clr = [178,102,255,255]
+                elif weight == 1:
+                    clr = [153,51,255,255]
+                else:
+                    clr = [127,0,255,255]
+            elif order == 1:
+                if weight == 0:
+                    clr = [102,178,255,255]
+                elif weight == 1:
+                    clr = [51,153,255,255]
+                else:
+                    clr = [0,128,255,255]
+            elif order == 2:
+                if weight == 0:
+                    clr = [51,255,51,255]
+                elif weight == 1:
+                    clr = [0,255,0,255]
+                else:
+                    clr = [0,204,0,255]
+            elif order == 3:
+                if weight == 0:
+                    clr = [255,255,51,255]
+                elif weight == 1:
+                    clr = [255,255,0,255]
+                else:
+                    clr = [204,204,0,255]
+            elif order == 4:
+                if weight == 0:
+                    clr = [255,51,51,255]
+                elif weight == 1:
+                    clr = [255,0,0,255]
+                else:
+                    clr = [204,0,0,255]
+            #clr = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 255]
+
             tex_coords = ('c4B', clr * 4)
             self.batch.add(4, GL_QUADS, None,   ('v3f', (X, y, z,  x, y, z,  x, Y, z,  X, Y, z)), tex_coords)
             self.batch.add(4, GL_QUADS, None,   ('v3f', (x, y, Z,  X, y, Z,  X, Y, Z,  x, Y, Z)), tex_coords) 
@@ -62,16 +98,11 @@ class Model:
 
 
     def __init__(self):
-
-        self.top = self.get_tex('grass_top.png')
-        self.side = self.get_tex('grass_side.png')
-        self.bottom = self.get_tex('dirt.png')
-
         self.batch = pyglet.graphics.Batch()
 
-        self.add_block(size['x'], size['y'], size['z'], size['length'], size['width'], size['height'], False)
+        self.add_block(size['x'], size['y'], size['z'], size['length'], size['width'], size['height'], False, 0, 0)
         for idx, element in boxes.iterrows():
-            self.add_block(element['x'], element['y'], element['z'], element['length'], element['width'], element['height'])
+            self.add_block(element['x'], element['y'], element['z'], element['length'], element['width'], element['height'], True, element['weight'], element['order'])
 
 
     def draw(self):
@@ -139,7 +170,7 @@ class Window(pyglet.window.Window):
 
     def set3d(self):
         self.Projection()
-        gluPerspective(100, self.width/self.height, 30, 1000)
+        gluPerspective(100, self.width/self.height, 10, 1000)
         self.Model()
 
     def setLock(self, state):
@@ -179,7 +210,7 @@ class Window(pyglet.window.Window):
         glPopMatrix()
 
 if __name__ == '__main__':
-    window = Window(width=400, height=300, caption='My caption',resizable=True)
+    window = Window(width=400, height=300, caption='Visualizer',resizable=True)
     glClearColor(0.5,0.7,1,1)
     glEnable(GL_DEPTH_TEST)
     #glEnable(GL_CULL_FACE)
