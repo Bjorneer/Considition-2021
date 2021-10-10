@@ -28,6 +28,7 @@ namespace DotNet.Solvers
             TruckY = vehicle.Width;
             TruckZ = vehicle.Height;
             MAX_X = TruckX; // can decrease perfomance
+            Vehicle = vehicle;
         }
         public override List<PointPackage> Solve()
         {

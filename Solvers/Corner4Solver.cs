@@ -28,6 +28,7 @@ namespace DotNet.Solvers
             TruckX = vehicle.Length;
             TruckY = vehicle.Width;
             TruckZ = vehicle.Height;
+            Vehicle = vehicle;
         }
         private readonly int[] placeOrder = new int[] { 2, 4, 6, 5, 3 };
         public override List<PointPackage> Solve()

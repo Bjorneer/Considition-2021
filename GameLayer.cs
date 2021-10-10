@@ -22,7 +22,6 @@ namespace DotNet
             var state = _api.NewGame(mapName).Result;
             return state;
         }
-
         ///  <summary> Submits your solution for validation and scoring.</summary>
         /// <param name="solution"> Your solution</param>
         ///  <param name="mapName">map choice </param>
@@ -31,12 +30,10 @@ namespace DotNet
             var state = _api.SubmitGame(solution, mapName).Result;
             return state;
         }
-
         public List<FetchResponse> FetchGames()
         {
             return _api.FetchGame().Result;
         }
-
         public FetchResponse FetchGames(string gameId)
         {
             return _api.FetchGame(gameId).Result;

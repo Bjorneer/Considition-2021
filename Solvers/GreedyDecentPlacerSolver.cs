@@ -11,26 +11,11 @@ namespace DotNet.Solvers
     {
         public GreedyGoodPlaceSolver(List<Package> packages, Vehicle vehicle)
         {
-            /*
-            packages.ForEach(package =>
-            {
-                int h = package.Height;
-                int l = package.Length;
-                int w = package.Width;
-                List<int> sz = new List<int> { h, l, w };
-                sz.Sort();
-                package.Height = sz[0];
-                package.Length = sz[1];
-                package.Width = sz[2];
-            });
-            */
             Packages = packages;
-            
             TruckX = vehicle.Length;
             TruckY = vehicle.Width;
             TruckZ = vehicle.Height;
-
-
+            Vehicle = vehicle;
         }
         public override List<PointPackage> Solve()
         {

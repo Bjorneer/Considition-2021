@@ -41,7 +41,6 @@ namespace DotNet
 
             return JsonConvert.DeserializeObject<GameResponse>(result);
         }
-
         public async Task<SubmitResponse> SubmitGame(string solution, string mapName)
         {
             var data = new StringContent(solution, Encoding.UTF8, "application/json");
@@ -57,7 +56,6 @@ namespace DotNet
 
             return JsonConvert.DeserializeObject<SubmitResponse>(result);
         }
-
         public async Task<List<FetchResponse>> FetchGame()
         {
             var response = await _client.GetAsync("fetch");

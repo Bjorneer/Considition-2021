@@ -1,8 +1,10 @@
 ﻿using DotNet.models;
+using DotNet.Visualisation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DotNet.Solvers
@@ -11,11 +13,13 @@ namespace DotNet.Solvers
     {
         protected const bool RANDOMIZE = true;
         public abstract List<PointPackage> Solve();
+        public GameLayer GameLayer;
         protected List<Package> Packages;
         protected List<PointPackage> Solution = new();
         protected int TruckX;
         protected int TruckY;
         protected int TruckZ;
+        protected Vehicle Vehicle;
 
         protected bool CanFit(int x, int z, int y, (int a, int b, int c) perm)
         {
@@ -60,6 +64,20 @@ namespace DotNet.Solvers
             foreach (var item in ints)
                 ma = Math.Max(item, ma);
             return ma;
+        }
+        private int _currentBestScore = int.MinValue;
+        public void Submit()
+        {
+            var submitSolution = Program.GameLayer.Submit(JsonSerializer.Serialize(Solution), Program.Map);
+            Console.WriteLine("Your GameId is: " + submitSolution.GameId);
+            Console.WriteLine("Your score is: " + submitSolution.Score);
+            Console.WriteLine("Link to visualisation" + submitSolution.Link);
+            if (_currentBestScore <= submitSolution.Score)
+            {
+                Console.WriteLine("Saving solution");
+                CsvSaver.Save(Vehicle, Solution);
+                _currentBestScore = submitSolution.Score;
+            }
         }
     }
 }
