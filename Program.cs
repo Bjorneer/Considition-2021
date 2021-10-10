@@ -24,7 +24,7 @@ namespace DotNet
         public static void Main(string[] args)
         {
             var gameInformation = GameLayer.NewGame(Map);
-            ISolver greedySolver = new Corner4Solver(gameInformation.Dimensions, gameInformation.Vehicle);
+            ISolver greedySolver = new InnerPlacerSolver(gameInformation.Dimensions, gameInformation.Vehicle);
             var solution = greedySolver.Solve();
             var submitSolution = GameLayer.Submit(JsonSerializer.Serialize(solution), Map);
             Console.WriteLine("Your GameId is: " + submitSolution.GameId);
