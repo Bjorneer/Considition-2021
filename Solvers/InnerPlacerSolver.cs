@@ -11,7 +11,7 @@ namespace DotNet.Solvers
     {
         #region Parameters
         private readonly int MAX_X = 240; // Can be used to force heavys shorter
-        private const bool RANDOMIZE = false;
+        private const bool RANDOMIZE = true;
         #endregion  
 
         private List<Package> _packages;
@@ -57,9 +57,8 @@ namespace DotNet.Solvers
                 Pack(group.Where(item => item.WeightClass != 2));
             }
             //DropFloating(); // Usually does not improve performance
-            groups.Reverse();
             Console.WriteLine("Repacking");
-            foreach (var group in groups)
+            foreach (var group in _packages.GroupBy(item => item.OrderClass).OrderBy(item => item.Key))
             {
                 foreach (var package in group.OrderByDescending(item => item.WeightClass == 2 ? 1 : 0).ThenByDescending(item => _solution.First(sol => sol.Id == item.Id).x5))
                 {
