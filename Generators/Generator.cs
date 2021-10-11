@@ -14,8 +14,53 @@ namespace DotNet.Generators
         protected List<Package> Packages = new List<Package>();
         protected abstract string Map { get; }
         protected abstract void ReGenerate();
+        private int OrderScore(List<PointPackage> solution)
+        {
+            var submissionOrder = solution.OrderByDescending(item => item.x1).ThenByDescending(item => item.z1).ThenBy(item => item.OrderClass).ToList(); 
+            // Third sort argument is missing from docs, Also sorting by x1 doesnt quite make alot of sense but thats whats used
+            var perfectOrder = solution.OrderBy(item => item.OrderClass).ToList();
+            int orderScore = 0;
+            for (int i = 0; i < perfectOrder.Count; i++)
+            {
+                var diff = Math.Abs(perfectOrder[i].OrderClass - submissionOrder[i].OrderClass);
+                switch (diff)
+                {
+                    case 0:
+                        orderScore += 20;
+                        break;
+                    case 1:
+                        orderScore += 10;
+                        break;
+                    case 2:
+                        orderScore += 2;
+                        break;
+                    case 3:
+                        orderScore -= 10;
+                        break;
+                    case 4:
+                        orderScore -= 20;
+                        break;
+                }
+            }
+            return orderScore;
+        }
         public virtual SubmitResponse Submit(List<PointPackage> solution)
-        { return null; }
+        {
+            // Score calc assumes 1000 weight
+            Console.WriteLine("Submission for non live map created");
+            Console.WriteLine($"Order score: {OrderScore(solution)} / {solution.Count * 20}");
+            Console.WriteLine($"Weight score: 1000 (non calculated)");
+            Console.WriteLine($"Packing efficency: {Math.Round(1 + (Packages.Sum(item => item.Width * item.Height * item.Length) / (double)(solution.Max(item => item.x5) * solution.Max(item => item.y5) * solution.Max(item => item.z5))), 2) }");
+            Console.WriteLine($"Length score: {10 * (Vehicle.Length - solution.Max(item => item.x5) )} / {Vehicle.Length * 10}");
+            Console.WriteLine($"Total score: {(int)((1000 + OrderScore(solution) + 10 * (Vehicle.Length - solution.Max(item => item.x5))) * (1 + (Packages.Sum(item => item.Width * item.Height * item.Length) / (double)(solution.Max(item => item.x5) * solution.Max(item => item.y5) * solution.Max(item => item.z5))))) }");
+            return new SubmitResponse()
+            {
+                Link = "visualizer.py",
+                GameId = Guid.NewGuid().ToString(),
+                valid = true,
+                Score = (int)((1000 + OrderScore(solution) + 10 * (Vehicle.Length - solution.Max(item => item.x5))) * (1 + (Packages.Sum(item => item.Width * item.Height * item.Length) / (double)(solution.Max(item => item.x5) * solution.Max(item => item.y5) * solution.Max(item => item.z5)))))
+            };
+        }
         public (Vehicle vehicle, List<Package> packages) ReadOrGenerateMap()
         {
             string path = $"C:\\src\\Considition-2021\\Generators\\SavedMaps\\{Map}.txt"; // SavedMaps folder is excluded from git but will be generated

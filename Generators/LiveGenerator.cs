@@ -10,8 +10,14 @@ namespace DotNet.Generators
 {
     public class LiveGenerator : Generator
     {
-        protected override string Map => "training2";
+        private string _map;
+        protected override string Map => _map;
         private GameLayer GameLayer = new GameLayer("510c78d2-d786-41aa-b327-d6902d965217");
+
+        public LiveGenerator(string map)
+        {
+            _map = map;
+        }
 
         protected override void ReGenerate()
         {
@@ -22,6 +28,7 @@ namespace DotNet.Generators
 
         public override SubmitResponse Submit(List<PointPackage> solution)
         {
+            base.Submit(solution);
             return GameLayer.Submit(JsonSerializer.Serialize(solution), Map);
         }
     }

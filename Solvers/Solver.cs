@@ -12,7 +12,7 @@ namespace DotNet.Solvers
 {
     public abstract class Solver
     {
-        protected const bool RANDOMIZE = true;
+        protected const bool RANDOMIZE = false; // Should be true for best solution
         public abstract List<PointPackage> Solve();
         public Generator MapGenerator;
         protected List<Package> Packages;
@@ -75,17 +75,12 @@ namespace DotNet.Solvers
                 Console.WriteLine("Your GameId is: " + submitSolution.GameId);
                 Console.WriteLine("Your score is: " + submitSolution.Score);
                 Console.WriteLine("Link to visualisation" + submitSolution.Link);
-                if (_bestSubmission == null || _bestSubmission.Score < submitSolution.Score)
-                {
-                    Console.WriteLine("Saving solution");
-                    CsvSaver.Save(Vehicle, solution ?? Solution);
-                    _bestSubmission = submitSolution;
-                }
             }
-            else
+            if (_bestSubmission == null || _bestSubmission.Score < submitSolution.Score)
             {
-                Console.WriteLine("Saving solution");
+                Console.WriteLine("Saving solution for local visualasation.");
                 CsvSaver.Save(Vehicle, solution ?? Solution);
+                _bestSubmission = submitSolution;
             }
         }
         protected List<PointPackage> DeepCopySolution(List<PointPackage> solution = null)
