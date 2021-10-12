@@ -44,21 +44,44 @@ namespace DotNet.Generators
             }
             return orderScore;
         }
+        private int WeightScore(List<PointPackage> solution)
+        {
+            int score = 1000;
+            foreach (var heavyPackage in solution.Where(item => item.WeightClass == 2))
+            {
+                if (heavyPackage.z1 != 0)
+                {
+                    foreach (var package in solution)
+                    {
+                        if ((package.x5 > heavyPackage.x1 && package.x1 < heavyPackage.x5) && (package.y5 > heavyPackage.y1 && package.y1 < heavyPackage.y5) && (package.z5 > heavyPackage.z1 - 1 && package.z1 < heavyPackage.z1))
+                        {
+                            score -= package.WeightClass == 2 ? 5 : (package.WeightClass == 1 ? 12 : 50);
+                        }
+                    }
+                }
+            }
+            return score;
+        }
+
         public virtual SubmitResponse Submit(List<PointPackage> solution)
         {
             // Score calc assumes 1000 weight
             Console.WriteLine("Submission for non live map created");
             Console.WriteLine($"Order score: {OrderScore(solution)} / {solution.Count * 20}");
-            Console.WriteLine($"Weight score: 1000 (non calculated)");
+            Console.WriteLine($"Weight score: {WeightScore(solution)}");
             Console.WriteLine($"Packing efficency: {Math.Round(1 + (Packages.Sum(item => item.Width * item.Height * item.Length) / (double)(solution.Max(item => item.x5) * solution.Max(item => item.y5) * solution.Max(item => item.z5))), 2) }");
             Console.WriteLine($"Length score: {10 * (Vehicle.Length - solution.Max(item => item.x5) )} / {Vehicle.Length * 10}");
-            Console.WriteLine($"Total score: {(int)((1000 + OrderScore(solution) + 10 * (Vehicle.Length - solution.Max(item => item.x5))) * (1 + (Packages.Sum(item => item.Width * item.Height * item.Length) / (double)(solution.Max(item => item.x5) * solution.Max(item => item.y5) * solution.Max(item => item.z5))))) }");
+            Console.WriteLine($"Total score: {(int)((WeightScore(solution) + OrderScore(solution) + 10 * (Vehicle.Length - solution.Max(item => item.x5))) * (1 + (Packages.Sum(item => item.Width * item.Height * item.Length) / (double)(solution.Max(item => item.x5) * solution.Max(item => item.y5) * solution.Max(item => item.z5))))) }");
             return new SubmitResponse()
             {
                 Link = "visualizer.py",
                 GameId = Guid.NewGuid().ToString(),
                 valid = true,
-                Score = (int)((1000 + OrderScore(solution) + 10 * (Vehicle.Length - solution.Max(item => item.x5))) * (1 + (Packages.Sum(item => item.Width * item.Height * item.Length) / (double)(solution.Max(item => item.x5) * solution.Max(item => item.y5) * solution.Max(item => item.z5)))))
+                Score = (int)
+                ((WeightScore(solution) + 
+                OrderScore(solution) + 
+                10 * (Vehicle.Length - solution.Max(item => item.x5))) 
+                * (1 + (Packages.Sum(item => item.Width * item.Height * item.Length) / (double)(solution.Max(item => item.x5) * solution.Max(item => item.y5) * solution.Max(item => item.z5)))))
             };
         }
         public (Vehicle vehicle, List<Package> packages) ReadOrGenerateMap()
