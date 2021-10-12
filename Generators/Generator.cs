@@ -16,8 +16,8 @@ namespace DotNet.Generators
         protected abstract void ReGenerate();
         private int OrderScore(List<PointPackage> solution)
         {
-            var submissionOrder = solution.OrderByDescending(item => item.x1).ThenByDescending(item => item.z1).ThenBy(item => item.OrderClass).ToList(); 
-            // Third sort argument is missing from docs, Also sorting by x1 doesnt quite make alot of sense but thats whats used
+            var submissionOrder = solution.OrderByDescending(item => item.x1).ThenByDescending(item => item.z1).ThenBy(item => item.Id).ToList(); 
+            // Third sort argument is missing from docs using id which seems to give same answer, Also sorting by x1 doesnt quite make alot of sense but thats whats used
             var perfectOrder = solution.OrderBy(item => item.OrderClass).ToList();
             int orderScore = 0;
             for (int i = 0; i < perfectOrder.Count; i++)

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace DotNet.Generators
 {
-    public class EasterGenerator : Generator
+    public class CyberMondayGenerator : Generator
     {
-        protected override string Map => "easter";
+        protected override string Map => "cyber";
 
         private int GetRandomPackageSize(int mean, int std)
         {
@@ -19,10 +19,10 @@ namespace DotNet.Generators
 
         protected override void ReGenerate()
         {
-            int length = 180;
-            int height = 100;
-            int widht = 120;
-            double[] weightProbabilities = new double[] { 0.6, 0.8, 1 };
+            int length = 250;
+            int height = 250;
+            int widht = 200;
+            double[] weightProbabilities = new double[] { 0.4, 0.5, 1 };
             double[] orderProbabilities = new double[] { 0.2, 0.4, 0.6, 0.8, 1 };
             double aprxPackVolumeOfTotal = 0.4;
 
@@ -37,9 +37,9 @@ namespace DotNet.Generators
                     Id = idCnt++,
                     WeightClass = weightProbabilities.Select((v, i) => new { dist = v, index = i }).First(item => item.dist >= weightSel).index,
                     OrderClass = orderProbabilities.Select((v, i) => new { dist = v, index = i }).First(item => item.dist >= orderSel).index,
-                    Height = GetRandomPackageSize(15, 7),
-                    Length = GetRandomPackageSize(15, 7),
-                    Width  = GetRandomPackageSize(15, 7),
+                    Height = GetRandomPackageSize(50, 20),
+                    Length = GetRandomPackageSize(40, 20),
+                    Width  = GetRandomPackageSize(30, 20),
                 });
                 currentVolume += Packages.Last().Width * Packages.Last().Length * Packages.Last().Height;
             }

@@ -1,4 +1,5 @@
 ﻿using DotNet.models;
+using DotNet.Solvers;
 using DotNet.Visualisation;
 using System;
 using System.Collections.Generic;
@@ -6,15 +7,29 @@ using System.Linq;
 
 namespace DotNet.Solvers
 {
-    public class GreedyGoodPlaceSolver : Solver
+    public class InnerPlacerHeavyReverseSolver : Solver
     {
-        private int MAX_X = 240;
-        public GreedyGoodPlaceSolver(List<Package> packages, Vehicle vehicle)
+        private readonly int MAX_X = 240; // Can be used to force heavys shorter
+        private readonly int MAX_X_HEAVIES = 240; // Can be used to force heavys shorter
+        private readonly int[] placeOrder = new int[] { 2, 4, 6, 5, 3, 1 };
+        public InnerPlacerHeavyReverseSolver(List<Package> packages, Vehicle vehicle)
         {
+            if (RANDOMIZE)
+            {
+                packages.ForEach(package =>
+                {
+                    int h = package.Height;
+                    int l = package.Length;
+                    int w = package.Width;
+                    List<int> sz = new List<int> { h, l, w }.OrderBy(item => Program.Random.Next()).ToList();
+                });
+            }
+
             Packages = packages;
             TruckX = vehicle.Length;
             TruckY = vehicle.Width;
             TruckZ = vehicle.Height;
+            MAX_X = TruckX; // can decrease perfomance
             Vehicle = vehicle;
         }
         public override List<PointPackage> Solve()
@@ -23,20 +38,20 @@ namespace DotNet.Solvers
             Console.WriteLine($"Heavy: {Packages.Where(item => item.WeightClass == 2).Count()}");
             Console.WriteLine($"Order counts (A,B,C,D,E): {string.Join(", ", Packages.GroupBy(item => item.OrderClass).OrderBy(item => item.Key).Select(item => item.Count().ToString()))}");
             Console.WriteLine($"Heavy counts (A,B,C,D,E): {string.Join(", ", Packages.Where(item => item.WeightClass == 2).GroupBy(item => item.OrderClass).OrderBy(item => item.Key).Select(item => item.Count().ToString()))}");
-            var groups = Packages.GroupBy(item => item.WeightClass == 2 ? 10 : item.OrderClass).OrderByDescending(item => item.Key).Select(item => item.AsEnumerable()).ToList();
-            //var groups = _packages.GroupBy(item => 0).OrderByDescending(item => item.Key).Select(item => item.AsEnumerable()).ToList();
-            foreach (var group in groups)
-            {
-                var packages = group.OrderByDescending(item => item.OrderClass).ThenByDescending(item => item.Height * item.Width * item.Length).ThenByDescending(item => Max(item.Width, item.Height, item.Length)).ThenByDescending(item => item.WeightClass);
-                //var packages = group.OrderByDescending(item => Max(item.Width, item.Height, item.Length)).ThenByDescending(item => item.WeightClass);
-                //var packages = group.OrderBy(item => item.OrderClass).ThenBy(item => item.WeightClass).ThenByDescending(item => Max(item.Width, item.Height, item.Length));
 
-                foreach (var package in packages)
-                {
-                    Console.WriteLine($"Placing package ({Solution.Count() + 1}/{Packages.Count()}) with id: {package.Id}, group: {(char)((int)'A' + package.OrderClass)}, heavy: {package.WeightClass}");
-                    Console.WriteLine($"Width: {package.Width}, Length: {package.Length}, Height: {package.Height}");
-                    Pack(package);
-                }
+            var heavies = Packages.Where(item => item.WeightClass == 2);
+            foreach (var package in heavies.OrderBy(item => placeOrder[item.OrderClass]).ThenByDescending(item => item.Height * item.Width * item.Length).ThenByDescending(item => Max(item.Width, item.Height, item.Length)))
+            {
+                if (placeOrder[package.OrderClass] % 2 == 0)
+                    PackHeavyReverse(package);
+                else
+                    PackHeavy(package);
+            }
+
+            var light = Packages.Where(item => item.OrderClass != 2);
+            foreach (var group in light.GroupBy(item => item.OrderClass).OrderByDescending(item => item.Key))
+            {
+                Pack(group);
             }
             for (int i = 0; i < 5; i++) // number of times to attempt repacking
             {
@@ -64,25 +79,81 @@ namespace DotNet.Solvers
             DropFloating(PushIn(PushBack()));
             return Solution;
         }
-        private void DropFloating()
+        private void Pack(IEnumerable<Package> group)
         {
-            Solution = Solution.OrderBy(item => item.z1).ToList();
-            foreach (var package in Solution)
+            if (group.Count() == 0)
+                return;
+            int minPrevX = Solution.Where(item => item.OrderClass != group.First().OrderClass).Count() == 0 ? 0 : Solution.Where(item => item.OrderClass != group.First().OrderClass).Max(item => item.x5 - 1);
+            List<Package> packagesLeft = new List<Package>();
+
+            foreach (var package in group.OrderByDescending(item => item.Length * item.Height * item.Width))
             {
-                while (package.z1 != 0 && CanFit(package.x1, package.z1 - 1, package.y1, new(package.x5 - package.x1, 1, package.y5 - package.y1)))
+                PointPackage best = null;
+                for (int _x = minPrevX; _x >= 0; _x--)
                 {
-                    package.z1 = package.z1 - 1;
-                    package.z2 = package.z1;
-                    package.z3 = package.z1;
-                    package.z4 = package.z1;
-                    package.z5 = package.z5 - 1;
-                    package.z6 = package.z5;
-                    package.z7 = package.z5;
-                    package.z8 = package.z5;
+                    foreach (var perm in GetPermutaions(new int[] { package.Width, package.Height, package.Length }))
+                    {
+                        if (_x - perm.a < 0)
+                            continue;
+                        for (int _z = TruckZ - perm.b; _z >= 0; _z--)
+                        {
+                            for (int _y = 0; _y < TruckY - perm.c; _y++)
+                            {
+                                if (CanFit(_x - perm.a + 1, _z, _y, perm))
+                                {
+                                    best = new PointPackage()
+                                    {
+                                        Id = package.Id,
+                                        x1 = _x - perm.a + 1,
+                                        x2 = _x - perm.a + 1,
+                                        x3 = _x - perm.a + 1,
+                                        x4 = _x - perm.a + 1,
+                                        x5 = _x + 1,
+                                        x6 = _x + 1,
+                                        x7 = _x + 1,
+                                        x8 = _x + 1,
+                                        y1 = _y,
+                                        y2 = _y,
+                                        y3 = _y,
+                                        y4 = _y,
+                                        y5 = _y + perm.c,
+                                        y6 = _y + perm.c,
+                                        y7 = _y + perm.c,
+                                        y8 = _y + perm.c,
+                                        z1 = _z,
+                                        z2 = _z,
+                                        z3 = _z,
+                                        z4 = _z,
+                                        z5 = _z + perm.b,
+                                        z6 = _z + perm.b,
+                                        z7 = _z + perm.b,
+                                        z8 = _z + perm.b,
+                                        OrderClass = package.OrderClass,
+                                        WeightClass = package.WeightClass
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+                if (best != null)
+                {
+                    Console.WriteLine($"Placing package ({Solution.Count() + 1}/{Packages.Count()}) with id: {package.Id}, group: {(char)((int)'A' + package.OrderClass)}, heavy: {package.WeightClass}");
+                    Console.WriteLine($"Width: {package.Width}, Length: {package.Length}, Height: {package.Height}");
+                    Solution.Add(best);
+                }
+                else
+                {
+                    //packagesLeft.Add(package);
+                    PackNormal(package);
                 }
             }
+            foreach (var package in packagesLeft)
+            {
+                PackNormal(package);
+            }
         }
-        private void Pack(Package package)
+        private void PackNormal(Package package)
         {
             if (package.WeightClass == 2)
             {
@@ -95,11 +166,11 @@ namespace DotNet.Solvers
 
             foreach (var perm in GetPermutaions(new int[] { package.Width, package.Height, package.Length }))
             {
-                for (int _x = 0; _x < TruckX - perm.a; _x++)
+                for (int _x = 0; _x < MAX_X - perm.a; _x++)
                 {
                     if (bestX <= _x + perm.a)
                         break;
-                    for (int _z = 0; _z < TruckZ - perm.b; _z++)
+                    for (int _z = TruckZ - perm.b; _z >= 0; _z--)
                     {
                         if (bestX <= _x + perm.a)
                             break;
@@ -146,7 +217,17 @@ namespace DotNet.Solvers
                 }
             }
             if (best == null)
+            {
+                CsvSaver.Save(new Vehicle
+                {
+                    Height = TruckZ,
+                    Width = TruckY,
+                    Length = TruckX
+                }, Solution);
                 throw new Exception("Could not place package");
+            }
+            Console.WriteLine($"Placing package ({Solution.Count() + 1}/{Packages.Count()}) with id: {package.Id}, group: {(char)((int)'A' + package.OrderClass)}, heavy: {package.WeightClass}");
+            Console.WriteLine($"Width: {package.Width}, Length: {package.Length}, Height: {package.Height}");
             Solution.Add(best);
         }
         private void PackHeavy(Package package)
@@ -160,7 +241,7 @@ namespace DotNet.Solvers
                 {
                     if (best != null)
                         break;
-                    for (int _x = 0; _x < MAX_X - perm.a; _x++)
+                    for (int _x = 0; _x < MAX_X_HEAVIES - perm.a; _x++)
                     {
                         if (bestX <= _x + perm.a)
                             break;
@@ -207,7 +288,87 @@ namespace DotNet.Solvers
                 }
             }
             if (best == null)
+            {
+                CsvSaver.Save(new Vehicle
+                {
+                    Height = TruckZ,
+                    Width = TruckY,
+                    Length = TruckX
+                }, Solution);
                 throw new Exception("Could not place package");
+            }
+            Solution.Add(best);
+        }
+        private void PackHeavyReverse(Package package)
+        {
+            int bestX = int.MinValue;
+            PointPackage best = null;
+
+
+            for (int _z = 0; _z < TruckZ; _z++)
+            {
+                if (best != null)
+                    break;
+                foreach (var perm in GetPermutaions(new int[] { package.Width, package.Height, package.Length }))
+                {
+                    if (perm.b + _z >= TruckZ)
+                        break;
+                    for (int _x = MAX_X_HEAVIES - perm.a - 1; _x >= 0; _x--)
+                    {
+                        if (_x <= bestX)
+                            break;
+                        for (int _y = 0; _y < TruckY - perm.c; _y++)
+                        {
+                            if (_x <= bestX)
+                                break;
+                            if (CanFit(_x, _z, _y, perm))
+                            {
+                                bestX = _x;
+                                best = new PointPackage()
+                                {
+                                    Id = package.Id,
+                                    x1 = _x,
+                                    x2 = _x,
+                                    x3 = _x,
+                                    x4 = _x,
+                                    x5 = _x + perm.a,
+                                    x6 = _x + perm.a,
+                                    x7 = _x + perm.a,
+                                    x8 = _x + perm.a,
+                                    y1 = _y,
+                                    y2 = _y,
+                                    y3 = _y,
+                                    y4 = _y,
+                                    y5 = _y + perm.c,
+                                    y6 = _y + perm.c,
+                                    y7 = _y + perm.c,
+                                    y8 = _y + perm.c,
+                                    z1 = _z,
+                                    z2 = _z,
+                                    z3 = _z,
+                                    z4 = _z,
+                                    z5 = _z + perm.b,
+                                    z6 = _z + perm.b,
+                                    z7 = _z + perm.b,
+                                    z8 = _z + perm.b,
+                                    OrderClass = package.OrderClass,
+                                    WeightClass = package.WeightClass
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            if (best == null)
+            {
+                CsvSaver.Save(new Vehicle
+                {
+                    Height = TruckZ,
+                    Width = TruckY,
+                    Length = TruckX
+                }, Solution);
+                throw new Exception("Could not place package");
+            }
             Solution.Add(best);
         }
         private void Repack(Package package)
@@ -235,7 +396,7 @@ namespace DotNet.Solvers
                 foreach (var perm in GetPermutaions(new int[] { package.Width, package.Height, package.Length }))
                 {
                     if (perm.b + _z > TruckZ)
-                        continue;
+                        break;
                     for (int _x = maxX - perm.a; _x >= 0; _x--)
                     {
                         if (_x <= bestX)
@@ -305,7 +466,7 @@ namespace DotNet.Solvers
                 {
                     if (_x <= bestX)
                         break;
-                    for (int _z = 0; _z < TruckZ - perm.b; _z++)
+                    for (int _z = TruckZ - perm.b; _z >= 0; _z--)
                     {
                         if (_x <= bestX)
                             break;
@@ -394,8 +555,8 @@ namespace DotNet.Solvers
                 foreach (var perm in GetPermutaions(new int[] { package.Width, package.Height, package.Length }))
                 {
                     if (_z + perm.b >= TruckZ)
-                        continue;
-                    for (int _x = minX; _x < TruckX - perm.a; _x++)
+                        break;
+                    for (int _x = minX; _x < MAX_X - perm.a; _x++)
                     {
                         if (bestX <= _x + perm.a)
                             break;
@@ -461,7 +622,7 @@ namespace DotNet.Solvers
 
             foreach (var perm in GetPermutaions(new int[] { package.Width, package.Height, package.Length }))
             {
-                for (int _x = minX; _x < TruckX - perm.a; _x++)
+                for (int _x = minX; _x < MAX_X - perm.a; _x++)
                 {
                     if (bestX <= _x + perm.a)
                         break;

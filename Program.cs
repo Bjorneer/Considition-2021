@@ -11,10 +11,10 @@ namespace DotNet
 
         public static void Main(string[] args)
         {
-            var generator = new LiveGenerator("training1");
-            //var generator = new EasterGenerator();
+            var generator = new LiveGenerator("training2");
+            //var generator = new CyberMondayGenerator();
             var (vehicle, packages) = generator.ReadOrGenerateMap();
-            Solver solver = new GreedyGoodPlaceSolver(packages, vehicle);
+            Solver solver = new InnerPlacerSolver(packages, vehicle);
             solver.MapGenerator = generator;
             solver.Solve();
             solver.Submit();
