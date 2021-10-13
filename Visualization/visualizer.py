@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import random
 
-f = pd.read_csv('./Visualisation/visualization.txt')
+f = pd.read_csv('./Visualization/visualization.txt')
 size = f.iloc[0]
 boxes = f.iloc[2:]
 maxBox = f.iloc[1]

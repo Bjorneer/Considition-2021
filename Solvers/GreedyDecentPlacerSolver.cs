@@ -1,5 +1,5 @@
 ﻿using DotNet.models;
-using DotNet.Visualisation;
+using DotNet.Visualization;
 using System;
 using System.Collections.Generic;
 using System.Linq;

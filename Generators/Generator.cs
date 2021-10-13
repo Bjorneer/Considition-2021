@@ -87,7 +87,7 @@ namespace DotNet.Generators
         public (Vehicle vehicle, List<Package> packages) ReadOrGenerateMap()
         {
             string path = $"C:\\src\\Considition-2021\\Generators\\SavedMaps\\{Map}.txt"; // SavedMaps folder is excluded from git but will be generated
-            if (File.Exists(path))
+            if (Program.READ_MAP_FROM_FILE && File.Exists(path))
             {
                 string mapContent = File.ReadAllText(path);
                 var splitContent = mapContent.Split('\n');
@@ -118,14 +118,17 @@ namespace DotNet.Generators
             else
             {
                 ReGenerate();
-                using (StreamWriter writer = new StreamWriter(path, false))
+                if (Program.READ_MAP_FROM_FILE)
                 {
-                    writer.WriteLine($"{Vehicle.Length} {Vehicle.Width} {Vehicle.Height}");
-                    foreach (var package in Packages)
+                    using (StreamWriter writer = new StreamWriter(path, false))
                     {
-                        writer.WriteLine($"{package.Length} {package.Width} {package.Height} {package.OrderClass} {package.WeightClass}");
+                        writer.WriteLine($"{Vehicle.Length} {Vehicle.Width} {Vehicle.Height}");
+                        foreach (var package in Packages)
+                        {
+                            writer.WriteLine($"{package.Length} {package.Width} {package.Height} {package.OrderClass} {package.WeightClass}");
+                        }
+                        writer.Close();
                     }
-                    writer.Close();
                 }
             }
             return (Vehicle, Packages);
