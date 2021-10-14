@@ -70,7 +70,6 @@ namespace DotNet.Solvers
         private SubmitResponse _bestSubmission = null;
         public void Submit(List<PointPackage> solution = null)
         {
-            CsvSaver.Save(Vehicle, solution ?? Solution);
             var submitSolution = MapGenerator.Submit(solution ?? Solution);
             if (submitSolution != null && submitSolution.Link != "visualizer.py")
             {
