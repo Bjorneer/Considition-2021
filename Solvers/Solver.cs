@@ -77,7 +77,7 @@ namespace DotNet.Solvers
                 Console.WriteLine("Your score is: " + submitSolution.Score);
                 Console.WriteLine("Link to visualisation" + submitSolution.Link);
             }
-            if (_bestSubmission == null || _bestSubmission.Score < submitSolution.Score)
+            if (_bestSubmission == null || _bestSubmission.Score < submitSolution.Score || Program.SAVE_ALL_SUBMISSIONS)
             {
                 Console.WriteLine("Saving solution for local visualasation.");
                 CsvSaver.Save(Vehicle, solution ?? Solution);

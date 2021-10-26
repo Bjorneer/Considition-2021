@@ -9,15 +9,23 @@ import math
 import numpy as np
 import pandas as pd
 import random
+import os
 
-f = pd.read_csv('./Visualization/visualization.txt')
-size = f.iloc[0]
-boxes = f.iloc[2:]
-maxBox = f.iloc[1]
+currentVisializationFile = 0
 
+def generate_df():
+    global currentVisializationFile
+    if currentVisializationFile < 0:
+        currentVisializationFile = 0
+    if os.path.isfile('./Visualization/visualization_' + str(currentVisializationFile) + '.txt') == False:
+        currentVisializationFile = currentVisializationFile - 1
+    f = pd.read_csv('./Visualization/visualization_' + str(currentVisializationFile) + '.txt')
+    size = f.iloc[0]
+    boxes = f.iloc[2:]
+    maxBox = f.iloc[1]
+    return size, boxes, maxBox
 
 class Model:
-
     def get_tex(self,file):
         tex = pyglet.image.load(file).get_texture()
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
@@ -99,7 +107,7 @@ class Model:
 
     def __init__(self):
         self.batch = pyglet.graphics.Batch()
-
+        size, boxes, maxBox = generate_df()
         self.add_block(size['x'], size['y'], size['z'], size['length'], size['width'], size['height'], False, 0, 0)
         for idx, element in boxes.iterrows():
             self.add_block(element['x'], element['y'], element['z'], element['length'], element['width'], element['height'], True, element['weight'], element['order'])
@@ -194,10 +202,17 @@ class Window(pyglet.window.Window):
         if self.mouse_lock: self.player.mouse_motion(dx,dy)
 
     def on_key_press(self, KEY, _MOD):
+        global currentVisializationFile
         if KEY == key.ESCAPE:
             self.close()
         elif KEY == key.E:
             self.mouse_lock = not self.mouse_lock
+        elif KEY == key.LEFT:
+            currentVisializationFile = currentVisializationFile - 1
+            self.model = Model()
+        elif KEY == key.RIGHT:
+            currentVisializationFile = currentVisializationFile + 1
+            self.model = Model()
 
     def update(self, dt):
         self.player.update(dt, self.keys)
@@ -210,7 +225,7 @@ class Window(pyglet.window.Window):
         glPopMatrix()
 
 if __name__ == '__main__':
-    window = Window(width=400, height=300, caption='Visualizer',resizable=True)
+    window = Window(width=400, height=300, caption='Visualizer', resizable=True)
     glClearColor(0.5,0.7,1,1)
     glEnable(GL_DEPTH_TEST)
     #glEnable(GL_CULL_FACE)

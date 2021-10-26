@@ -10,11 +10,13 @@ namespace DotNet.Visualization
 {
     public class CsvSaver
     {
+        private static int _submission = 0;
+
         public static void Save(Vehicle vehicle, List<PointPackage> packages)
         {
             if (Program.GENERATE_VISUAL_FILE)
             {
-                using (StreamWriter writer = new StreamWriter("C:\\src\\Considition-2021\\Visualization\\visualization.txt", false))
+                using (StreamWriter writer = new StreamWriter($"C:\\src\\Considition-2021\\Visualization\\visualization_{_submission++}.txt", false))
                 {
                     writer.WriteLine("length,width,height,x,y,z,weight,order");
                     writer.WriteLine($"{vehicle.Length},{vehicle.Width},{vehicle.Height},0,0,0,0,0");
